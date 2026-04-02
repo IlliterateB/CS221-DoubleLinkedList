@@ -35,8 +35,21 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public void addToRear(T element) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addToRear'");
+        // recommend writing normally first, then once ListIter is completely correct
+        // comment out old method and try with ListIters
+        // no point difference using ListIters or normal method writing
+
+        if (isEmpty()) {
+            addToFront(element);
+        } else {
+            Node<T> newNode = new Node<T> (element);
+            tail.setNext(newNode);
+            newNode.setPrev(tail);
+            tail = newNode;
+        }
+
+        size++;
+        modCount++;
     }
 
     @Override
@@ -59,8 +72,12 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public T removeFirst() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeFirst'");
+        ListIterator<T> itr = listIterator();
+        
+        T retVal = itr.next();
+        itr.remove();
+
+        return retVal;
     }
 
     @Override
@@ -103,8 +120,28 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public T get(int index) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'get'");
+
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Invalid index");
+        }
+
+        Node<T> currNode;
+
+        if (index < size / 2) {
+            currNode = head;
+
+            for (int i = 0; i < index; i++) {
+                currNode = currNode.getNext();
+            }
+        } else {
+            currNode = tail;
+
+            for (int i = size - 1; i > index; i--) {
+                currNode = currNode.getPrev();
+            }
+        }
+
+        return currNode.getElement();
     }
 
     @Override
@@ -172,7 +209,10 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         private Node<T> nextNode;
         private int nextIndex;
         private int iterModCount;
-        private boolean canRmvNext;
+        private Node<T> lastRetNode;
+
+        // private boolean canRmvNext; // don't do this because he said its the most
+        // complicated
 
         public DLLIterator() {
             // uses the other constructor to reduce code-duplication, not too important
@@ -196,9 +236,10 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             iterModCount = modCount;
 
             // Advance to the starting index
-            for (int i = 0; i < startIndex; i++) {
+            for (int i = 0; i < startIndex; i++) { // only efficient in 1st half of list
                 nextNode = nextNode.getNext();
             }
+            lastRetNode = null;
 
         }
 
@@ -218,10 +259,11 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
             T retVal = nextNode.getElement();
 
+            lastRetNode = nextNode; // sets it to the node with retVal before moving next Node
+
             nextNode = nextNode.getNext();
             nextIndex++;
 
-            canRmvNext = true;
             return retVal;
         }
 
@@ -246,20 +288,25 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
                 nextNode = tail;
             }
 
+            lastRetNode = nextNode; // sets it to the node
             nextIndex--;
             return nextNode.getElement();
         }
 
         @Override
         public int nextIndex() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'nextIndex'");
+            if (iterModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+            return nextIndex;
         }
 
         @Override
         public int previousIndex() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'previousIndex'");
+            if (iterModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+            return nextIndex - 1;
         }
 
         @Override
@@ -276,8 +323,37 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         @Override
         public void remove() {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'remove'");
+            if (iterModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+
+            if (lastRetNode == null) {
+                throw new IllegalStateException();
+            }
+
+            if (lastRetNode != head) {
+                lastRetNode.getPrev().setNext(lastRetNode.getNext());
+            } else {
+                head = lastRetNode.getNext();
+            }
+            if (lastRetNode != tail) {
+                lastRetNode.getNext().setPrev(lastRetNode.getPrev());
+            } else {
+                tail = lastRetNode.getPrev();
+            }
+
+            if (lastRetNode != nextNode) { // last move was next()
+                nextIndex--; // fewer elements to the left that were there
+            } else { // last move was previous()
+                nextNode = lastRetNode.getNext(); // nextNode can't point at a removed node
+            }
+
+            lastRetNode = null;
+
+            size--;
+            
+            modCount++;
+            iterModCount++;
         }
 
     }
