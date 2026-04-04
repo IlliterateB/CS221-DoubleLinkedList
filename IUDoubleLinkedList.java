@@ -69,6 +69,10 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             currNode = currNode.getNext();
         }
 
+        if (currNode.getElement() != target) { // checks to see if it went all the way thru the list without finding target
+            throw new NoSuchElementException();
+        }
+
         Node<T> newNode = new Node<T>(element);
 
         newNode.setNext(currNode.getNext()); // set nN next
@@ -86,9 +90,59 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
     }
 
     @Override
-    public void add(int index, T element) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'add'");
+    public void add(int index, T element) { 
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        Node<T> currNode;
+        Node<T> newNode = new Node<T>(element);
+        
+        // add special case for i = 0, i = size
+        if(index == 0) {
+            addToFront(element);
+        } else if(index == size) {
+            addToRear(element);
+        }
+
+
+        // general case, just split to reduce coefficient on O(n)
+        if (index < size/2) {
+
+            currNode = head;
+
+            for (int i = 0; i < index; i++) {   // should end where currNode is at index
+                currNode = currNode.getNext();
+            }
+
+            newNode.setNext(currNode.getNext()); // get node at index + 1
+            newNode.setPrev(currNode); // put nN prev to curr
+            newNode.getNext().setPrev(newNode); // set node's at index + 1 Prev() to new Node
+            currNode.setNext(newNode); // end by putting curr's next node to nN
+
+        } else {
+            
+            currNode = tail;
+
+            for (int i = size; i > index; i--) { // have to make sure its i--, messed up first with that
+                currNode = currNode.getPrev();  
+            }
+
+            // for loop ends at currNode = node at index - 1, so still need to add newNode after
+            // newNode.setPrev(currNode.getPrev());
+            // newNode.getPrev().setNext(newNode); 
+            // newNode.setNext(currNode);
+            // currNode.setPrev(newNode);
+
+
+            newNode.setNext(currNode.getNext()); 
+            newNode.setPrev(currNode); 
+            newNode.getNext().setPrev(newNode); 
+            currNode.setNext(newNode); 
+        }
+
+        size++;
+        modCount++;
     }
 
     @Override
