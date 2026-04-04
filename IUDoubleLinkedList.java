@@ -54,14 +54,35 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public void add(T element) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'add'");
+        addToRear(element);
     }
 
     @Override
     public void addAfter(T element, T target) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addAfter'");
+        if(isEmpty()) {
+            throw new NoSuchElementException();
+        }
+
+        Node<T> currNode = head;
+
+        while (currNode.getNext() != null && currNode.getElement() != target) { // should end at currNode = target
+            currNode = currNode.getNext();
+        }
+
+        Node<T> newNode = new Node<T>(element);
+
+        newNode.setNext(currNode.getNext()); // set nN next
+
+        if(newNode.getNext() != null) { // checks to see if its the last element in the list
+            newNode.getNext().setPrev(newNode); // set next nodes prev to the new node
+        } else { // if it is the last element, its the new tail
+            tail = newNode;
+        }
+        newNode.setPrev(currNode);  // set the nN prev to currNode
+        currNode.setNext(newNode);  // finally set the currNode next to newNode.
+        
+        size++;
+        modCount++;
     }
 
     @Override
