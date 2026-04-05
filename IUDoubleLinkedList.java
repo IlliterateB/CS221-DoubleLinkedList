@@ -177,14 +177,99 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public T remove(T element) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'remove'");
+        if(isEmpty()) {
+            throw new NoSuchElementException();
+        }
+
+        Node<T> currNode = head;
+
+        while (currNode.getNext() != null && currNode.getElement() != element) { // should end at currNode = element's node
+            currNode = currNode.getNext();
+        }
+
+        if (currNode.getElement() != element) { // checks to see if it went all the way thru the list without finding target
+            throw new NoSuchElementException();
+        }
+
+        T retVal = currNode.getElement();
+
+        if (retVal != element) {
+            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\nfailed getting RetVal !!!!!!!!\n\n\n\n\n\n\n\n\n");
+        }
+        
+        if (currNode == head){
+            removeFirst();
+        } else if (currNode == tail) {
+            removeLast();
+        } else {
+            Node<T> prevNode = currNode.getPrev();
+            Node<T> nextNode = currNode.getNext();
+
+            prevNode.setNext(nextNode);
+            nextNode.setPrev(prevNode);
+        }
+        
+        size--;
+        modCount++;
+
+        return retVal;
     }
 
     @Override
     public T remove(int index) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'remove'");
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        Node<T> currNode;
+        
+        
+        // add special case for i = 0, i = size-1
+        if(index == 0) {
+            removeFirst();
+        } else if(index == size-1) {
+            removeLast();
+        }
+
+        T retVal = null;
+        // general case, just split to reduce coefficient on O(n)
+        if (index < size/2) {
+
+            currNode = head;
+
+            for (int i = 0; i < index; i++) {   // should end where currNode is at index
+                currNode = currNode.getNext();
+            }
+
+            retVal = currNode.getElement();
+
+            Node<T> prevNode = currNode.getPrev();
+            Node<T> nextNode = currNode.getNext();
+
+            prevNode.setNext(nextNode);
+            nextNode.setPrev(prevNode);
+
+        } else {
+            
+            currNode = tail;
+
+            for (int i = size; i > index; i--) { 
+                currNode = currNode.getPrev();  
+            }
+
+            retVal = currNode.getElement();
+
+            Node<T> prevNode = currNode.getPrev();
+            Node<T> nextNode = currNode.getNext();
+
+            prevNode.setNext(nextNode);
+            nextNode.setPrev(prevNode);
+            
+        }
+
+        size--;
+        modCount++;
+        return retVal;
     }
 
     @Override
