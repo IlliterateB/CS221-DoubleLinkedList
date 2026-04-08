@@ -161,15 +161,26 @@ public class ListTester {
 		testEmptyList(A_remove0_emptyList, "A_remove0_emptyList");
 
 
+		if(SUPPORTS_LIST_ITERATOR) {
+			// 1-element to 2-element
+			testEmptyList(A_listIterRemove_emptyList, "A_listIterRemove_emptyList");
+		}
+
 		//1-element to 2-element
 		testTwoElementList(A_addToFrontB_BA, "A_addToFrontB_BA", LIST_BA, STRING_BA);
 			// added in part 3 with IUArrayList
 		testTwoElementList(A_addToRearB_AB, "A_addToRearB_AB", LIST_AB, STRING_AB);
 		testTwoElementList(A_addB_AB, "A_addB_AB", LIST_AB, STRING_AB);
-		testTwoElementList(A_add0B_BA, "A_add0B_AB", LIST_BA, STRING_BA);
+		testTwoElementList(A_add0B_BA, "A_add0B_BA", LIST_BA, STRING_BA);
 		testTwoElementList(A_add1B_AB, "A_add1B_AB", LIST_AB, STRING_AB);
 		testTwoElementList(A_addAfterBA_AB, "A_addAfterBA_AB", LIST_AB, STRING_AB);
 
+
+
+		if(SUPPORTS_LIST_ITERATOR) {
+			// 1-element to 2-element
+			testTwoElementList(A_listIterAddAfterNext_AB, "A_listIterAddAfterNext_AB", LIST_AB, STRING_AB);
+		}
 		//1-element to changed 1-element via set()
 		testSingleElementList(B_set0A_A, "B_set0A_A", LIST_A, STRING_A);
 		
@@ -418,6 +429,36 @@ public class ListTester {
 		return list;
 	}
 	private Scenario<Integer> AB_removeLast_A = () -> AB_removeLast_A();
+
+
+	////////
+	/// List Iterator Tests
+	///////
+	
+		/**
+	 * Scenario: [A] -> listIterAdd(B) after 1x next
+	 * @return
+	 */
+	private IndexedUnsortedList<Integer> A_listIterAddAfterNext_AB() {
+		IndexedUnsortedList<Integer> list = emptyList_addA_A();
+		ListIterator<Integer> lit = list.listIterator();
+		lit.next(); // literator is after A
+		lit.add(ELEMENT_B);	//adding after A
+		return list; // return [A,B]
+	}
+	private Scenario<Integer> A_listIterAddAfterNext_AB = () -> A_listIterAddAfterNext_AB();
+
+
+	private IndexedUnsortedList<Integer> A_listIterRemove_emptyList() {
+		IndexedUnsortedList<Integer> list = emptyList_addA_A();
+		ListIterator<Integer> lit = list.listIterator(1);
+		lit.previous(); // literator is before A
+		lit.remove();	//removing A
+		return list; // return []
+	}
+	private Scenario<Integer> A_listIterRemove_emptyList = () -> A_listIterRemove_emptyList();
+
+
 
 	/////////////////////////////////
 	//XXX Tests for 0-element list
