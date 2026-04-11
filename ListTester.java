@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
  * NOTE: One example test is given for each interface method using a new list to
  * get you started.
  * 
- * @author mvail, mhthomas, awinters
+ * @author mvail, mhthomas, awinters, Bryson Leatham
  */
 @SuppressWarnings("deprecated")
 public class ListTester {
@@ -143,6 +143,8 @@ public class ListTester {
 		String STRING_B = "B";
 		Integer[] LIST_BA = {ELEMENT_B, ELEMENT_A};
 		String STRING_BA = "BA";
+		Integer[] LIST_BC = {ELEMENT_B, ELEMENT_C};
+		String STRING_BC = "BC";
 		Integer[] LIST_AB = {ELEMENT_A, ELEMENT_B};
 		String STRING_AB = "AB";
 		Integer[] LIST_ABD = {ELEMENT_A, ELEMENT_B, ELEMENT_D};
@@ -155,6 +157,8 @@ public class ListTester {
 		String STRING_CBA = "CBA";
 		Integer[] LIST_ACB = {ELEMENT_A, ELEMENT_C, ELEMENT_B};
 		String STRING_ACB = "ACB";
+		Integer[] LIST_DBC = {ELEMENT_D, ELEMENT_B, ELEMENT_C};
+		String STRING_DBC = "DBC";
 
 		//newly constructed empty list
 		testEmptyList(newList, "newList");
@@ -211,10 +215,7 @@ public class ListTester {
 		//3-element to changed 3-element via set()
 
 		if(SUPPORTS_LIST_ITERATOR) {
-			// 1-element to empty list
-			testEmptyList(A_listIterNextRemove_emptyList, "A_listIterNextRemove_emptyList");
-			testEmptyList(A_listIterPrevRemove_emptyList, "A_listIterPrevRemove_emptyList");
-
+			////// Adding Testers
 			// empty list to 1-element
 			testSingleElementList(emptyList_listIterAddA_A, "emptyList_listIterAddA_A", LIST_A, STRING_A);
 
@@ -222,17 +223,31 @@ public class ListTester {
 			testTwoElementList(A_listIterAddAfterNext_AB, "A_listIterAddAfterNext_AB", LIST_AB, STRING_AB);
 			testTwoElementList(A_listIterNewLiterAddB_AB, "A_listIterNewLiterAddB_AB", LIST_AB, STRING_AB);
 
+			// 2-element to 3-element with new listIter
+			testThreeElementList(AB_listIterNewLiterAddC_CAB, "AB_listIterNewLiterAddC_CAB", LIST_CAB, STRING_CAB);
+
+
+			////// Removing Testers
+			// 1-element to empty list
+			testEmptyList(A_listIterNextRemove_emptyList, "A_listIterNextRemove_emptyList");
+			testEmptyList(A_listIterPrevRemove_emptyList, "A_listIterPrevRemove_emptyList");
+
 			// 3-element to 2-element
+				// remove after prev
 			testTwoElementList(ABC_listIterRemoveAfterPrev_AB, "ABC_listIterRemoveAfterPrev_AB", LIST_AB, STRING_AB);
+			testTwoElementList(ABC_listIterRemoveAfterPrev_BC, "ABC_listIterRemoveAfterPrev_BC", LIST_BC, STRING_BC);
+				// remove after next
+			testTwoElementList(ABC_listIterRemoveAfterNext_BC, "ABC_listIterRemoveAfterNext_BC", LIST_BC, STRING_BC);
+			testTwoElementList(ABC_listIterRemoveAfterNext_AB, "ABC_listIterRemoveAfterNext_AB", LIST_AB, STRING_AB);
+
+		
+			////// Set Testers
+			// 3-element changed with set
+			testThreeElementList(ABC_listIterSetAfterPrev_ABD, "ABC_listIterSetAfterPrev_ABD", LIST_ABD, STRING_ABD);
+			testThreeElementList(ABC_listIterSetAfterNext_DBC, "ABC_listIterSetAfterNext_DBC", LIST_DBC, STRING_DBC);
 
 			// 1-element changed with set
 			testSingleElementList(A_listIterSetB_B, "A_listIterSetB_B", LIST_B, STRING_B);
-
-			// 3-element changed with set
-			testThreeElementList(ABC_listIterSetAfterPrev_ABD, "ABC_listIterSetAfterPrev_ABD", LIST_ABD, STRING_ABD);
-
-			// 2-element to 3-element with new listIter
-			testThreeElementList(AB_listIterNewLiterAddC_CAB, "AB_listIterNewLiterAddC_CAB", LIST_CAB, STRING_CAB);
 
 		}
 
@@ -709,14 +724,12 @@ public class ListTester {
 	private IndexedUnsortedList<Integer> ABC_listIterSetAfterPrev_ABD() {
 		IndexedUnsortedList<Integer> list = emptyList_addA_A();
 		ListIterator<Integer> lit = list.listIterator();
-		lit.add(ELEMENT_A);
+		lit.next(); // literator is after A
 		lit.add(ELEMENT_B);
-		lit.add(ELEMENT_C);
-		lit.next();
-		// lit.next();
-		lit.next(); // I know I could just make a new list iter but why not 3x next to check
-		lit.previous();
-		lit.set(ELEMENT_D);
+		lit.add(ELEMENT_C); // list is now [A, B, C]
+		ListIterator<Integer> nLit = list.listIterator(3); // start after C
+		nLit.previous();	//nLit is before C
+		nLit.set(ELEMENT_D);
 		return list;
 	}
 	private Scenario<Integer> ABC_listIterSetAfterPrev_ABD = () -> ABC_listIterSetAfterPrev_ABD();
@@ -737,13 +750,56 @@ public class ListTester {
 	}
 	private Scenario<Integer> AB_listIterNewLiterAddC_CAB = () -> AB_listIterNewLiterAddC_CAB();
 
+	/**
+	 * Scenario: [A,B,C] -> listIter remove() after next() A -> [B,C]
+	 */
+	private IndexedUnsortedList<Integer> ABC_listIterRemoveAfterNext_BC() {
+		IndexedUnsortedList<Integer> list = AB_addToRearC_ABC();
+		ListIterator<Integer> lit = list.listIterator();
+		lit.next();
+		lit.remove();
+		return list;
+	}
+	private Scenario<Integer> ABC_listIterRemoveAfterNext_BC = () -> ABC_listIterRemoveAfterNext_BC();
 
+	/**
+	 * Scenario: [A,B,C] -> listIter remove() after next() A -> [B,C]
+	 */
+	private IndexedUnsortedList<Integer> ABC_listIterRemoveAfterPrev_BC() {
+		IndexedUnsortedList<Integer> list = AB_addToRearC_ABC();
+		ListIterator<Integer> lit = list.listIterator(1); // should start at A^BC
+		lit.previous();
+		lit.remove();
+		return list;
+	}
+	private Scenario<Integer> ABC_listIterRemoveAfterPrev_BC = () -> ABC_listIterRemoveAfterPrev_BC();
 
+	/**
+	 * Scenario: [A, B, C] -> listIterSet(D) after 1x next -> [D, B, C]
+	 * @return
+	 */
+	private IndexedUnsortedList<Integer> ABC_listIterSetAfterNext_DBC() {
+		IndexedUnsortedList<Integer> list = AB_addToRearC_ABC();
+		ListIterator<Integer> lit = list.listIterator();
+		lit.next(); // literator is after A
+		lit.set(ELEMENT_D);
+		return list;
+	}
+	private Scenario<Integer> ABC_listIterSetAfterNext_DBC = () -> ABC_listIterSetAfterNext_DBC();
 
-
-
-
-
+	/**
+	 * Scenario: [A,B,C] -> listIter remove() after 3x next -> [A, B]
+	 */
+	private IndexedUnsortedList<Integer> ABC_listIterRemoveAfterNext_AB() {
+		IndexedUnsortedList<Integer> list = AB_addToRearC_ABC();
+		ListIterator<Integer> lit = list.listIterator();
+		lit.next();
+		lit.next();
+		lit.next();
+		lit.remove();
+		return list;
+	}
+	private Scenario<Integer> ABC_listIterRemoveAfterNext_AB = () -> ABC_listIterRemoveAfterNext_AB();
 
 
 
@@ -1326,59 +1382,6 @@ public class ListTester {
 			iterAfterRemove(iterAfterNext(scenario.build(), 1)), contents[1], Result.MatchingValue));
 			printTest(scenarioName + "_iterNextRemove_testIterRemove",
 			testIterRemove(iterAfterRemove(iterAfterNext(scenario.build(), 1)), Result.IllegalState));
-
-				// TODO if I change so VSCode doesn't yell at me, they always fail on 3 element lists
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterHasNext", 
-			// testIterHasNext(iterAfterRemove(iterAfterNext(scenario.build(), 1)), Result.True));
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterNext",
-			// testIterNext(iterAfterRemove(iterAfterNext(scenario.build(), 1)), contents[2],
-			// Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterRemove", testIterRemove(
-			// iterAfterRemove(iterAfterNext(scenario.build(), 1)), Result.NoException));
-
-			// printTest(scenarioName + "_iterNextNext_testIterHasNext",
-			// testIterHasNext(iterAfterNext(scenario.build(), 2), Result.True));
-			// printTest(scenarioName + "_iterNextNext_testIterNext",
-			// testIterNext(iterAfterNext(scenario.build(), 2), contents[2], Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextNext_testIterRemove",
-			// testIterRemove(iterAfterNext(scenario.build(), 2), Result.NoException));
-
-			// printTest(scenarioName + "_iterNextNextRemove_testIterHasNext",
-			// testIterHasNext(iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.True));
-			// printTest(scenarioName + "_iterNextNextRemove_testIterNext", testIterNext(
-			// iterAfterRemove(iterAfterNext(scenario.build(), 2)), contents[2], Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextNextRemove_testIterRemove",
-			
-				////////////
-				/// VSCode wont let me run these as is, but runs fine for Razma
-			// testIterRemove(iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.IllegalState));
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterHasNext", testIterHasNext(
-			// 		iterAfterNext(iterAfterRemove(iterAfterNext(scenario.build(), 1)), 1), Result.True));
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterNext",
-			// 		testIterNext(iterAfterNext(iterAfterRemove(iterAfterNext(scenario.build(), 1)), 1), contents[2],
-			// 				Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextRemoveNext_testIterRemove", testIterRemove(
-			// 		iterAfterNext(iterAfterRemove(iterAfterNext(scenario.build(), 1)), 1), Result.NoException));
-
-			// printTest(scenarioName + "_iterNextNext_testIterHasNext",
-			// 		testIterHasNext(iterAfterNext(scenario.build(), 2), Result.True));
-			// printTest(scenarioName + "_iterNextNext_testIterNext",
-			// 		testIterNext(iterAfterNext(scenario.build(), 2), contents[2], Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextNext_testIterRemove",
-			// 		testIterRemove(iterAfterNext(scenario.build(), 2), Result.NoException));
-
-			// printTest(scenarioName + "_iterNextNextRemove_testIterHasNext",
-			// 		testIterHasNext(iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.True));
-			// printTest(scenarioName + "_iterNextNextRemove_testIterNext", testIterNext(
-			// 		iterAfterRemove(iterAfterNext(scenario.build(), 2)), contents[2], Result.MatchingValue));
-			// printTest(scenarioName + "_iterNextNextRemove_testIterRemove",
-			// 		testIterRemove(iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.IllegalState));
-			// printTest(scenarioName + "_iterNextNextRemoveNext_testIterHasNext", testIterHasNext(
-			// iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.False));
-			// printTest(scenarioName + "_iterNextNextRemoveNext_testIterNext", testIterNext(
-			// iterAfterRemove(iterAfterNext(scenario.build(), 2)), null, Result.NoSuchElement));
-			// printTest(scenarioName + "_iterNextNextRemoveNext_testIterRemove", testIterRemove(
-			// iterAfterRemove(iterAfterNext(scenario.build(), 2)), Result.NoException));
 
 			printTest(scenarioName + "_iterNextNextNext_testIterHasNext",
 			testIterHasNext(iterAfterNext(scenario.build(), 3), Result.False));

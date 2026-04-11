@@ -4,7 +4,8 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 /** 
- * Implementation of a double linked list with indexed access and unsorted elements.
+ * IUDoubleLinkedList implements IndexedUnsortedList to create a node-based,
+ * doubly linked list. Each node references a Generic T element and is linked to its next and its previous node.
  * 
  * @author Bryson Leatham
  */
@@ -15,6 +16,10 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
     private int size;
     private int modCount;
 
+    /**
+     * Default constructor for the IUDoubleLinkedList class.
+     * Initializes an empty list.
+     */
     public IUDoubleLinkedList() {
         head = null;
         tail = null;
@@ -27,7 +32,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         Node<T> newNode = new Node<T>(element);
 
         if (size > 0) { // or head != null, or !isEmpty()
-            head.setPrev(newNode);
+            head.setPrev(newNode); // if list isn't empty, set newNode before head
         } else {
             tail = newNode;
         }
@@ -46,7 +51,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         if (isEmpty()) {
             addToFront(element);
-        } else {
+        } else { // add to the end of a non-empty list
             Node<T> newNode = new Node<T> (element);
             tail.setNext(newNode);
             newNode.setPrev(tail);
@@ -75,7 +80,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             currNode = currNode.getNext();
         }
 
-        if (currNode.getElement() != target) { // checks to see if it went all the way thru the list without finding target
+        if (currNode.getElement() != target) { // checks to see if it went all the way through the list without finding target
             throw new NoSuchElementException();
         }
 
@@ -104,7 +109,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         Node<T> currNode;
         Node<T> newNode = new Node<T>(element);
         
-        // add special case for i = 0, i = size
+        // special case for i = 0, i = size
         if(index == 0) {
             addToFront(element);
             return;
@@ -112,7 +117,6 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             addToRear(element);
             return;
         }
-
 
         // general case, just split to reduce coefficient on O(n)
         if (index < size/2) {
@@ -136,13 +140,6 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
                 currNode = currNode.getPrev();  
             }
 
-            // for loop ends at currNode = node at index - 1, so still need to add newNode after
-            // newNode.setPrev(currNode.getPrev());
-            // newNode.getPrev().setNext(newNode); 
-            // newNode.setNext(currNode);
-            // currNode.setPrev(newNode);
-
-
             newNode.setNext(currNode.getNext()); 
             newNode.setPrev(currNode); 
             newNode.getNext().setPrev(newNode); 
@@ -155,7 +152,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public T removeFirst() {
-        ListIterator<T> itr = listIterator();
+        ListIterator<T> itr = listIterator(); // uses List Iterator for ease of use
         
         T retVal = itr.next();
         itr.remove();
@@ -171,13 +168,13 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         T retVal = tail.getElement();
 
-        if (size > 1) {
+        if (size > 1) { // checks to make sure its not an empty or 1 element list, avoids NullPointer
             tail.getPrev().setNext(null);
         } else {
             head = null;
         }
 
-        tail = tail.getPrev();
+        tail = tail.getPrev(); // move tail since tail needs removed
         size--;
         modCount++;
         return retVal;
@@ -200,16 +197,13 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         }
 
         T retVal = currNode.getElement();
-
-        if (retVal != element) {
-            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\nfailed getting RetVal !!!!!!!!\n\n\n\n\n\n\n\n\n");
-        }
         
+        // special case of element @ head
         if (currNode == head){
-            return removeFirst();
-        } else if (currNode == tail) {
+            return removeFirst(); // need to return methods like this so the compiler doesnt keep going through the method
+        } else if (currNode == tail) { // special case of element @ tail
             return removeLast();
-        } else {
+        } else { // general case of everywhere else
             Node<T> prevNode = currNode.getPrev();
             Node<T> nextNode = currNode.getNext();
 
@@ -232,7 +226,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         Node<T> currNode;
         
         
-        // add special case for i = 0, i = size-1
+        // special case for i = 0, i = size-1
         if(index == 0) {
             return removeFirst();
         } else if(index == size-1) {
@@ -261,7 +255,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             
             currNode = tail;
 
-            for (int i = size-1; i > index; i--) { 
+            for (int i = size-1; i > index; i--) { // size -1 to start at the end, not one past
                 currNode = currNode.getPrev();  
             }
 
@@ -280,7 +274,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         return retVal;
 
 
-        ////// from class
+        ////// from class, works but isnt as efficient as looking from both ends
         // Node<T> currNode = head;
 
         // for(int i = 0; i < index; i++) {
@@ -314,15 +308,17 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             throw new IndexOutOfBoundsException("Invalid index");
         }
 
-        // if(index == 0) {
-        //     head.setElement(element);
-        // }
-        // if(index == size - 1) {
-        //     tail.setElement(element);
-        // }
+        // special case of head or tail elements, more efficient
+        if(index == 0) {
+            head.setElement(element);
+        }
+        if(index == size - 1) {
+            tail.setElement(element);
+        }
 
         Node<T> currNode;
 
+        // general case, still works without special cases
         if (index < size / 2) {
             currNode = head;
 
@@ -352,13 +348,13 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         Node<T> currNode;
 
-        if (index < size / 2) {
+        if (index < size / 2) { // start from head and loop to reduce coefficient on O(n)
             currNode = head;
 
-            for (int i = 0; i < index; i++) {
+            for (int i = 0; i < index; i++) { // ends at currNode @ index
                 currNode = currNode.getNext();
             }
-        } else {
+        } else { // start from tail
             currNode = tail;
 
             for (int i = size - 1; i > index; i--) {
@@ -376,7 +372,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
         int i = 0;
         Node<T> currNode = head;
 
-        while (currNode != null && retIndex < 0) {
+        while (currNode != null && retIndex < 0) { // makes sure it doesn't go past the end or go past where it finds the first matching element
             if (currNode.getElement().equals(element)) {
                 retIndex = i;
             } else {
@@ -407,7 +403,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     @Override
     public boolean contains(T target) {
-        return indexOf(target) > -1;
+        return indexOf(target) > -1; // checks if the element is in the list, indexOf() wont be -1 if it finds the target
     }
 
     @Override
@@ -506,6 +502,10 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         @Override
         public T next() {
+            if (iterModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -530,6 +530,11 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
         @Override
         public T previous() {
+
+            if (iterModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+
             if (!hasPrevious()) {
                 throw new NoSuchElementException();
             }
@@ -587,7 +592,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             // Find the insertion point
             Node<T> newNode = new Node<T>(e);
 
-                // this does not work 
+                // this does not work correctly
             // if(tail != null) {
             //     tail.setNext(newNode);
             //     newNode.setPrev(tail);
@@ -599,7 +604,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             
             // Insert before nextNode. If nextNode is head, insert at front.
             if (nextNode == head) {
-                // insert at front (possibly into empty list)
+                // insert at front of list
                 if (head == null) { // empty list
                     head = newNode;
                     tail = newNode;
@@ -641,11 +646,14 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
                 throw new IllegalStateException();
             }
 
+            // special case @ head for NullPointerException
             if (lastRetNode != head) {
                 lastRetNode.getPrev().setNext(lastRetNode.getNext());
             } else {
                 head = lastRetNode.getNext();
             }
+
+            // same at tail
             if (lastRetNode != tail) {
                 lastRetNode.getNext().setPrev(lastRetNode.getPrev());
             } else {
