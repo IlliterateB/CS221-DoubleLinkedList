@@ -3,6 +3,11 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+/** 
+ * Implementation of a double linked list with indexed access and unsorted elements.
+ * 
+ * @author Bryson Leatham
+ */
 public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
 
     private Node<T> head;
@@ -256,7 +261,7 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             
             currNode = tail;
 
-            for (int i = size; i > index; i--) { 
+            for (int i = size-1; i > index; i--) { 
                 currNode = currNode.getPrev();  
             }
 
@@ -582,18 +587,48 @@ public class IUDoubleLinkedList<T> implements IndexedUnsortedList<T> {
             // Find the insertion point
             Node<T> newNode = new Node<T>(e);
 
-            if(tail != null) {
+                // this does not work 
+            // if(tail != null) {
+            //     tail.setNext(newNode);
+            //     newNode.setPrev(tail);
+            // } else
+            //     head = newNode; // if tail is null, then head is also null, so set head to newNode
+            
+            // tail = newNode;
+
+            
+            // Insert before nextNode. If nextNode is head, insert at front.
+            if (nextNode == head) {
+                // insert at front (possibly into empty list)
+                if (head == null) { // empty list
+                    head = newNode;
+                    tail = newNode;
+                } else {
+                    newNode.setNext(head);
+                    head.setPrev(newNode);
+                    head = newNode;
+                }
+            } else if (nextNode == null) {
+                // insert at tail
                 tail.setNext(newNode);
                 newNode.setPrev(tail);
+                tail = newNode;
+            } else {
+                // insert before nextNode in the middle
+                Node<T> prevNode = nextNode.getPrev();
+                prevNode.setNext(newNode);
+                newNode.setPrev(prevNode);
+                newNode.setNext(nextNode);
+                nextNode.setPrev(newNode);
             }
-            
-            
-            tail = newNode;
-            
+
+
+            lastRetNode = null;
 
             size++;
             modCount++;
             iterModCount++;
+            nextIndex++;
         }
 
         @Override
